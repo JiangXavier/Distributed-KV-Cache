@@ -1,0 +1,6 @@
+services:
+    leicache:
+        name : LeiCache
+        addr:
+            - localhost : 9999
+        ttl : 30 # second
