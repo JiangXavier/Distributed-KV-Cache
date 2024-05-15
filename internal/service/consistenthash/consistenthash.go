@@ -2,6 +2,7 @@ package consistenthash
 
 import (
 	"hash/crc32"
+	"leicache/utils/logger"
 	"sort"
 	"strconv"
 )
@@ -38,4 +39,36 @@ func (m *Map) Add(keys []string) {
 		}
 	}
 	sort.Ints(m.keys)
+}
+
+func (m *Map) GetTruthNode(key string) string {
+	if len(m.keys) == 0 {
+		return ""
+	}
+	hash := int(m.hash([]byte(key)))
+	idx := sort.Search(len(m.keys), func(i int) bool {
+		return m.keys[i] >= hash
+	})
+	return m.mapping[m.keys[idx%len(m.keys)]]
+}
+
+func (m *Map) RemovePeer(peer string) {
+	// 删除真实节点
+	virtualHash := []int{}
+	for key, v := range m.mapping {
+		logger.LogrusObj.Warn("peers:", v)
+		if v == peer {
+			delete(m.mapping, key)
+			virtualHash = append(virtualHash, key)
+		}
+	}
+
+	for i := 0; i < len(virtualHash); i++ {
+		for index, value := range m.keys {
+			if virtualHash[i] == value {
+				m.keys = append(m.keys[:index], m.keys[index+1:]...)
+			}
+		}
+	}
+
 }

@@ -1,6 +1,40 @@
+namysql:
+    host: localhost
+    port: 3306
+    database: kv
+    username: root
+    password: 123456
+    charset: utf8mb4
+
+
+etcd:
+    address:
+        - localhost:2379
+        - localhost:22379
+        - localhost:32379
+    ttl: 5                   # second
+
 services:
-    leicache:
-        name : LeiCache
+    gateway:
+        name: gateway
+        loadBalance: true
         addr:
-            - localhost : 9999
-        ttl : 30 # second
+            - localhost:10005
+    student:
+        name: student
+        loadBalance: false
+        addr:
+            - localhost:10006
+    leicache:
+        name: LeiCache
+        addr:
+            - localhost:9999
+            - localhost:10000
+            - localhost:10001
+        ttl: 30               # second
+
+domain:
+    student:
+        name: student
+    leicache:
+        name: LeiCache
