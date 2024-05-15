@@ -2,8 +2,9 @@ package lfu
 
 import (
 	"container/heap"
-	"leicache/internal/service/interfaces"
 	"time"
+
+	"leicache/internal/service/cachepurge/interfaces"
 )
 
 type lfuCache struct {

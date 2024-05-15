@@ -2,11 +2,12 @@ package shutdown
 
 import (
 	"context"
-	"leicache/utils/logger"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
+
+	"leicache/utils/logger"
 )
 
 func GracefullyShutdown(server *http.Server) {

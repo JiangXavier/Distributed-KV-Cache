@@ -12,16 +12,16 @@ func init() {
 
 func TestConsistentHash(t *testing.T) {
 	// 使用 crc32.ChecksumIEEE hash 算法
-	ch := New(2, nil)
+	ch := NewConsistentHash(2, nil)
 	logger.LogrusObj.Info("NewConsistentHash Success...")
 	// 先计算 key = 1 key = 2 key = 3 时的 hash 值
 
 	// 6 16 26
 	// 4 14 24
 	// 2 12 22
-	ch.Add([]string{"2", "4"})
-	for _, virtualhash := range ch.keys {
-		logger.LogrusObj.Infof("虚拟节点 hash 值：%d, 对应的真实节点为：%s", virtualhash, ch.mapping[virtualhash])
+	ch.AddTruthNode([]string{"2", "4"})
+	for _, virtualhash := range ch.virtualNodes {
+		logger.LogrusObj.Infof("虚拟节点 hash 值：%d, 对应的真实节点为：%s", virtualhash, ch.hashMap[virtualhash])
 	}
 	// node2 值：2322626082 值：4252452532
 	// node4 值：2871910706 值：3693793700

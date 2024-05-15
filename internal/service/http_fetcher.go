@@ -2,20 +2,21 @@ package service
 
 import (
 	"fmt"
+
 	"io"
 	"net/http"
 	"net/url"
 )
 
 type httpFetcher struct {
-	baseURL string
+	baseURL string // the address of the remote node to be accessed. such as http://example.com/_ggcache/
 }
 
 var _ Fetcher = (*httpFetcher)(nil)
 
 // httpFetcher responsible for querying the value of key from the group cache of the specified node through http request
-func (h *httpFetcher) Fetch(name string, key string) ([]byte, error) {
-	u := fmt.Sprintf("%v%v/%v", h.baseURL, url.QueryEscape(name), url.QueryEscape(key))
+func (h *httpFetcher) Fetch(group string, key string) ([]byte, error) {
+	u := fmt.Sprintf("%v%v/%v", h.baseURL, url.QueryEscape(group), url.QueryEscape(key))
 
 	res, err := http.Get(u)
 	if err != nil {
@@ -32,5 +33,5 @@ func (h *httpFetcher) Fetch(name string, key string) ([]byte, error) {
 		return nil, fmt.Errorf("reading response body failed: %v", err)
 	}
 
-	return bytes, err
+	return bytes, nil
 }

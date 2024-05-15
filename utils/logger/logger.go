@@ -1,11 +1,12 @@
 package logger
 
 import (
-	"github.com/sirupsen/logrus"
 	"log"
 	"os"
 	"path"
 	"time"
+
+	"github.com/sirupsen/logrus"
 )
 
 var LogrusObj *logrus.Logger
@@ -16,12 +17,15 @@ func init() {
 		LogrusObj.Out = outputFile
 		return
 	}
+
 	logger := logrus.New()
 	// outputFile, _ := setOutputFile()
 	// logger.Out = outputFile
 	logger.Out = os.Stdout
 	logger.SetLevel(logrus.DebugLevel)
-	logger.SetFormatter(&logrus.TextFormatter{TimestampFormat: "2024-05-01 15:04:05"})
+	logger.SetFormatter(&logrus.TextFormatter{
+		TimestampFormat: "2006-01-02 15:04:05",
+	})
 
 	LogrusObj = logger
 }
@@ -31,7 +35,7 @@ func setOutputFile() (*os.File, error) {
 	logFilePath := ""
 
 	if dir, err := os.Getwd(); err == nil {
-		logFilePath = dir + "/log/"
+		logFilePath = dir + "/logs/"
 	}
 
 	_, err := os.Stat(logFilePath)
@@ -42,7 +46,7 @@ func setOutputFile() (*os.File, error) {
 		}
 	}
 
-	logFileName := now.Format("2024-05-01") + ".log"
+	logFileName := now.Format("2006-01-02") + ".log"
 	fileName := path.Join(logFilePath, logFileName)
 	if _, err := os.Stat(fileName); err != nil {
 		if _, err := os.Create(fileName); err != nil {
@@ -56,5 +60,5 @@ func setOutputFile() (*os.File, error) {
 		log.Println(err.Error())
 		return nil, err
 	}
-	return output, err
+	return output, nil
 }

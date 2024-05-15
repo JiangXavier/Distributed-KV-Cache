@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-
 	"leicache/config"
 	conf "leicache/config"
 	"leicache/internal/middleware/etcd/discovery/discovery3"
@@ -33,12 +32,14 @@ func main() {
 		return
 	}
 
-	go discovery3.DynamicServices(updateChan, config.Conf.Services["leicache"].Name)
-	// Server implemented Pick interface, register a node selector for leicache
-	peers, err := discovery3.ListServicePeers(config.Conf.Services["leicache"].Name)
+	go discovery3.DynamicServices(updateChan, config.Conf.Services["groupcache"].Name)
+
+	// Server implemented Pick interface, register a node selector for ggcache
+	peers, err := discovery3.ListServicePeers(config.Conf.Services["groupcache"].Name)
 	if err != nil {
 		peers = []string{"serviceAddr"}
 	}
+
 	svr.SetPeers(peers)
 
 	gm["scores"].RegisterServer(svr)

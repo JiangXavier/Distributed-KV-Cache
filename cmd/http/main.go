@@ -1,8 +1,9 @@
-package http
+package main
 
 import (
 	"flag"
 	"fmt"
+
 	"leicache/internal/service"
 	httpserver "leicache/internal/service"
 )

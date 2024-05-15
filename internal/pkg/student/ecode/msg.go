@@ -23,5 +23,5 @@ func GetMsg(code int) string {
 	if msg, ok := MsgFlags[code]; ok {
 		return msg
 	}
-	return "fail"
+	return MsgFlags[ERROR]
 }

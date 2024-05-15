@@ -4,20 +4,21 @@ type ByteView struct {
 	b []byte
 }
 
-func (b ByteView) Len() int {
-	return len(b.b)
-}
-
-func (b ByteView) String() string {
-	return string(b.b)
-}
-
-func (b ByteView) ByteSlice() []byte {
-	return cloneBytes(b.b)
+func (bv ByteView) Bytes() []byte {
+	return cloneBytes(bv.b)
 }
 
 func cloneBytes(b []byte) []byte {
-	a := make([]byte, len(b))
-	copy(a, b)
-	return a
+	newB := make([]byte, len(b))
+	copy(newB, b)
+	return newB
+}
+
+func (bv ByteView) String() string {
+	return string(bv.b)
+}
+
+// 实现 Value 接口
+func (bv ByteView) Len() int {
+	return len(bv.b)
 }

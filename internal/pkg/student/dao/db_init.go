@@ -3,13 +3,19 @@ package dao
 import (
 	"context"
 	"fmt"
+	"leicache/internal/pkg/student/model"
+	"log"
+
+	"strings"
+
+	"leicache/config"
+
+	logger2 "leicache/utils/logger"
+
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 	"gorm.io/gorm/schema"
-	"leicache/config"
-	logger2 "leicache/utils/logger"
-	"strings"
 )
 
 var _db *gorm.DB
@@ -22,16 +28,23 @@ func InitDB() {
 	username := mConfig.UserName
 	password := mConfig.Password
 	charset := mConfig.Charset
+
 	// username:password@tcp(host:port)/database?charset=xx&parseTime=xx&loc=xx
 	dsn := strings.Join([]string{username, ":", password, "@tcp(", host, ":", port, ")/", database, "?charset=", charset, "&parseTime=", "true", "&loc=", "Local"}, "")
-	err := Database(dsn)
+	db, err := Database(dsn)
 	if err != nil {
 		fmt.Println(err)
 		logger2.LogrusObj.Error(err)
 	}
+
+	// 创建表
+	if err := db.AutoMigrate(&model.Student{}); err != nil {
+		log.Fatalf("创建表失败: %v", err)
+	}
 }
 
-func Database(connStr string) error {
+func Database(connStr string) (*gorm.DB, error) {
+
 	db, err := gorm.Open(mysql.New(mysql.Config{
 		DSN:                       connStr,
 		DefaultStringSize:         256,   // Default length of String type fields
@@ -46,12 +59,18 @@ func Database(connStr string) error {
 			SingularTable: true,
 		},
 	})
+
 	if err != nil {
 		panic(err)
 	}
+
+	// sqlDB, _ := db.DB()
+	// sqlDB.SetMaxIdleConns(20)
+	// sqlDB.SetMaxOpenConns(100)
+	// sqlDB.SetConnMaxLifetime(30 * time.Second)
 	_db = db
 	migration()
-	return err
+	return db, err
 }
 
 func NewDBClient(ctx context.Context) *gorm.DB {

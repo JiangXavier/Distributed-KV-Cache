@@ -1,18 +1,21 @@
 package service
 
 import (
-	"leicache/internal/service/cachepurge"
-	"leicache/internal/service/interfaces"
-	"leicache/utils/logger"
 	"sync"
+
+	"leicache/utils/logger"
+
+	"leicache/internal/service/cachepurge"
+	"leicache/internal/service/cachepurge/interfaces"
 )
 
-// cache 模块负责提供对缓存淘汰模块的并发控制
+// cache 模块负责提供对lru模块的并发控制
 
+// 给 lru 上层并发上一层锁
 type cache struct {
 	mu           sync.RWMutex
 	strategy     interfaces.CacheStrategy
-	maxCacheSize int64
+	maxCacheSize int64 // 保证 lru 一定初始化
 }
 
 func newCache(strategy string, cacheSize int64) *cache {
@@ -26,6 +29,7 @@ func newCache(strategy string, cacheSize int64) *cache {
 	}
 }
 
+// 并发控制
 func (c *cache) set(key string, value ByteView) {
 	c.mu.Lock()
 	c.strategy.Put(key, value)

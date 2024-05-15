@@ -2,28 +2,32 @@ package service
 
 import (
 	"fmt"
-	"leicache/internal/service/consistenthash"
-	"leicache/utils/logger"
 	"net/http"
 	"strings"
 	"sync"
+
+	"leicache/internal/service/consistenthash"
+
+	"leicache/utils/logger"
 )
 
-// 在编译时检查类型安全，确保一个类型实现了某个接口
 var _ Picker = (*HTTPPool)(nil)
 
+/*
+Because there are other services that may be hosted on a host, it's a good habit to add an extra path,
+and most websites have api interfaces that are generally prefixed with api;
+*/
 const (
-	defaultBasePath  = "/_leicache/"
-	apiServerAddr    = "127.0.0.1:9999"
-	defaultNumVisual = 50
+	defaultBasePath = "/_leicache/"
+	apiServerAddr   = "127.0.0.1:9999"
 )
 
 type HTTPPool struct {
 	address      string
 	basePath     string
-	mu           sync.Mutex
-	peers        *consistenthash.Map
-	httpFetchers map[string]*httpFetcher
+	mu           sync.Mutex                     // guards peers and httpFetchers
+	peers        *consistenthash.ConsistentHash // used to select nodes based on specific keys
+	httpFetchers map[string]*httpFetcher        // keyed by e.g. "http://10.0.0.1:8080"
 }
 
 func NewHTTPPool(address string) *HTTPPool {
@@ -33,7 +37,7 @@ func NewHTTPPool(address string) *HTTPPool {
 	}
 }
 
-// Log HTTPPool implement HTTP Handler interface
+// HTTPPool implement HTTP Handler interface
 func (p *HTTPPool) Log(format string, v ...interface{}) {
 	logger.LogrusObj.Infof("[Server %s] %s", p.address, fmt.Sprintf(format, v...))
 }
@@ -68,14 +72,13 @@ func (p *HTTPPool) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/octet-stream")
 	// write value's deep copy
-	_, err = w.Write(view.ByteSlice())
-	if err != nil {
-		return
-	}
+	w.Write(view.Bytes())
 }
 
-// Pick implementing Picker Interface.
-// function: according to the specific key, select the node and return the HTTP client corresponding to the node.
+/*
+implementing Picker Interface.
+function: according to the specific key, select the node and return the HTTP client corresponding to the node.
+*/
 func (p *HTTPPool) Pick(key string) (Fetcher, bool) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
@@ -90,18 +93,29 @@ func (p *HTTPPool) Pick(key string) (Fetcher, bool) {
 	return p.httpFetchers[peerAddress], true
 }
 
-// UpdatePeers rebuilding a consistent hash ring by new peers list
+// rebuilding a consistent hash ring by new peers list
 func (p *HTTPPool) UpdatePeers(peers ...string) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
-	p.peers = consistenthash.New(defaultNumVisual, nil)
-	p.peers.Add(peers)
+	p.peers = consistenthash.NewConsistentHash(defaultReplicas, nil)
+	p.peers.AddTruthNode(peers)
 	p.httpFetchers = make(map[string]*httpFetcher, len(peers))
 
 	for _, peer := range peers {
 		p.httpFetchers[peer] = &httpFetcher{
-			baseURL: peer + p.basePath, // such "http://10.0.0.1:9999/_leicache/"
+			baseURL: peer + p.basePath, // such "http://10.0.0.1:9999/_ggcache/"
 		}
 	}
 }
+
+/*
+- application/octet-stream 是一种通用的二进制数据类型，用于传输任意类型的二进制数据，没有特定的结构或者格式，可以用于传输图片、音频、视频、压缩文件等任意二进制数据。
+- application/json ：用于传输 JSON（Javascript Object Notation）格式的数据，JSON 是一种轻量级的数据交换格式，常用于 Web 应用程序之间的数据传输。
+- application/xml：用于传输 XML（eXtensible Markup Language）格式的数据，XML 是一种标记语言，常用于数据的结构化表示和交换。
+- text/plain：用于传输纯文本数据，没有特定的格式或者结构，可以用于传输普通文本、日志文件等。
+- multipart/form-data：用于在 HTML 表单中上传文件或者二进制数据，允许将表单数据和文件一起传输。
+- image/jpeg、image/png、image/gif：用于传输图片数据，分别对应 JPEG、PNG 和 GIF 格式的图片。
+- audio/mpeg、audio/wav：用于传输音频数据，分别对应 MPEG 和 WAV 格式的音频
+- video/map、video/quicktime：用于传输视频数据，分别对应 MAP4 和 Quicktime 格式的视频。
+*/

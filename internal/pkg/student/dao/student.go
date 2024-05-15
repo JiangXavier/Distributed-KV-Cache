@@ -2,10 +2,12 @@ package dao
 
 import (
 	"context"
-	"gorm.io/gorm"
+
 	stuPb "leicache/api/studentpb"
 	"leicache/internal/pkg/student/model"
 	"leicache/utils/logger"
+
+	"gorm.io/gorm"
 )
 
 type StudentDao struct {
@@ -17,7 +19,8 @@ func NewStudentDao(ctx context.Context) *StudentDao {
 }
 
 func (dao *StudentDao) ShowStudentInfo(req *stuPb.StudentRequest) (r *model.Student, err error) {
-	err = dao.Model(&model.Student{}).Where("name=?", req.Name).First(&r).Error
+	err = dao.Model(&model.Student{}).Where("name=?", req.Name).
+		First(&r).Error
 	return
 }
 

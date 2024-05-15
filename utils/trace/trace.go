@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-// Trace show runtime stack information when errors occur
+// show runtime stack information when errors occur
 func Trace(errMessage string) string {
 	var pcstack [32]uintptr
 	/*

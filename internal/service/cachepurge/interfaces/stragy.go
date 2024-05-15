@@ -1,7 +1,10 @@
 package interfaces
 
-import "time"
+import (
+	"time"
+)
 
+// strategy class design model
 type CacheStrategy interface {
 	Get(string) (Value, *time.Time, bool)
 	Put(string, Value)
@@ -13,13 +16,14 @@ type Value interface {
 	Len() int
 }
 
+// ttl support for delete stale cached data
 type Entry struct {
 	Key      string
 	Value    Value
-	UpdateAt *time.Time // last time update the cache
+	UpdateAt *time.Time
 }
 
-// Expired ttl expired function
+// ttl expired function
 func (ele *Entry) Expired(duration time.Duration) (ok bool) {
 	if ele.UpdateAt == nil {
 		ok = false
@@ -31,6 +35,7 @@ func (ele *Entry) Expired(duration time.Duration) (ok bool) {
 
 // ttl touch function
 func (ele *Entry) Touch() {
+	//ele.UpdateAt=time.Now()
 	nowTime := time.Now()
 	ele.UpdateAt = &nowTime
 }

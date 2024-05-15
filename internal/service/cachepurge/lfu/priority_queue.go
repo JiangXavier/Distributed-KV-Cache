@@ -1,6 +1,6 @@
 package lfu
 
-import "leicache/internal/service/interfaces"
+import "leicache/internal/service/cachepurge/interfaces"
 
 type priorityqueue []*lfuEntry
 

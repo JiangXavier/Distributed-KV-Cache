@@ -1,11 +1,15 @@
 package cachepurge
 
 import (
-	"leicache/internal/service/cachepurge/fifo"
-	"leicache/internal/service/cachepurge/lfu"
-	"leicache/internal/service/cachepurge/lru"
-	"leicache/internal/service/interfaces"
 	"strings"
+
+	"leicache/internal/service/cachepurge/fifo"
+
+	"leicache/internal/service/cachepurge/interfaces"
+
+	"leicache/internal/service/cachepurge/lfu"
+
+	"leicache/internal/service/cachepurge/lru"
 )
 
 func New(name string, maxBytes int64, onEvicted func(string, interfaces.Value)) interfaces.CacheStrategy {

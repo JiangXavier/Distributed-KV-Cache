@@ -2,8 +2,9 @@ package fifo
 
 import (
 	"container/list"
-	"leicache/internal/service/interfaces"
 	"time"
+
+	"leicache/internal/service/cachepurge/interfaces"
 )
 
 type fifoCahce struct {

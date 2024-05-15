@@ -3,18 +3,20 @@ package dao
 import (
 	"context"
 	"fmt"
-	stuPb "leicache/api/studentpb"
-	"leicache/internal/pkg/student/model"
-	"leicache/utils/logger"
 	"math/rand"
 	"os"
 	"time"
+
+	stuPb "leicache/api/studentpb"
+	"leicache/internal/pkg/student/model"
+	"leicache/utils/logger"
 )
 
 func migration() {
-	if isHasTable("student") {
+	if IsHasTable("student") {
 		return
 	}
+
 	err := _db.Set("gorm:table_options", "charset=utf8mb4").
 		AutoMigrate(
 			&model.Student{},
@@ -29,7 +31,7 @@ func migration() {
 	logger.LogrusObj.Infoln("register table success")
 }
 
-func isHasTable(tableName string) bool {
+func IsHasTable(tableName string) bool {
 	return _db.Migrator().HasTable(tableName)
 }
 
@@ -53,6 +55,28 @@ func InitilizeDB() {
 	}
 
 	logger.LogrusObj.Infoln("数据导入成功...")
+}
+
+func GenerateChineseNames(n int) []string {
+	surnames := []string{"李", "王", "张", "刘", "陈", "杨", "赵", "黄", "周", "吴",
+		"徐", "孙", "朱", "马", "胡", "郭", "林", "高", "罗", "梁",
+		"宋", "郑", "谢", "韩", "唐", "冯", "于", "董", "萧", "程"}
+	givenNames := []string{"的", "了", "在", "是", "我", "有", "和", "就", "不", "人",
+		"都", "一", "一个", "上", "也", "很", "到", "说", "要", "去",
+		"你", "会", "着", "没有", "看", "好", "自己", "这", "那", "还",
+		"们", "大", "来", "为", "着", "里", "它", "她", "又", "什么",
+		"把", "好像", "知道", "能", "可以", "觉得", "是的", "时候", "怎样", "没"}
+
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+
+	names := make([]string, n)
+	for i := 0; i < n; i++ {
+		surname := surnames[r.Intn(len(surnames))]
+		givenName := givenNames[r.Intn(len(givenNames))]
+		names[i] = fmt.Sprintf("%s%s", surname, givenName)
+	}
+
+	return names
 }
 
 func GenerateEnglishNames(n int) []string {

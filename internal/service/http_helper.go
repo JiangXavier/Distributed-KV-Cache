@@ -1,33 +1,32 @@
 package service
 
 import (
-	"leicache/utils/logger"
 	"log"
 	"net/http"
+
+	"leicache/utils/logger"
 )
 
-func StartHTTPCacheServer(addr string, addrs []string, leicache *Group) {
+func StartHTTPCacheServer(addr string, addrs []string, ggcache *Group) {
 	peers := NewHTTPPool(addr)
 	peers.UpdatePeers(addrs...)
-	leicache.RegisterServer(peers)
+	ggcache.RegisterServer(peers)
 	logger.LogrusObj.Infof("service is running at %v", addr)
 	log.Fatal(http.ListenAndServe(addr[7:], peers))
 }
 
-func StartHTTPAPIServer(apiAddr string, leicache *Group) {
+// todo: gin 路由拆分请求负载
+func StartHTTPAPIServer(apiAddr string, ggcache *Group) {
 	http.Handle("/api", http.HandlerFunc(
 		func(w http.ResponseWriter, r *http.Request) {
 			key := r.URL.Query().Get("key")
-			view, err := leicache.Get(key)
+			view, err := ggcache.Get(key)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
 			w.Header().Set("Content-Type", "application/octet-stream")
-			_, err = w.Write(view.ByteSlice())
-			if err != nil {
-				return
-			}
+			w.Write(view.Bytes())
 		}))
 	logger.LogrusObj.Infof("fontend server is running at %v", apiAddr)
 	log.Fatal(http.ListenAndServe(apiAddr[7:], nil))
